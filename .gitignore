@@ -66,6 +66,9 @@ business-data-agent/uvicorn*.log
 .resume_extracted.txt
 .claude/
 .agents/
+/.codex/
+/CLAUDE.md
+/学习模式.md
 
 # OS / editor
 .DS_Store
