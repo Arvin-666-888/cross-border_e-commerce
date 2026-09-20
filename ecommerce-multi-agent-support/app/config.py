@@ -23,6 +23,7 @@ class Settings(BaseSettings):
         min_length=32,
     )
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=60, ge=5, le=1440)
+    SESSION_CONTEXT_TTL_MINUTES: int = Field(default=30, ge=1, le=1440)
     COMMERCE_BACKEND: Literal["sqlite", "woocommerce"] = "sqlite"
     SEED_DEMO_DATA: bool = True
     DEMO_DATA_SEED: int = 20260722

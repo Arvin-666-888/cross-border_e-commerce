@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.agents.catalog import CatalogAgent
 from app.agents.aftersales import AftersalesAgent
 from app.database import get_db
+from app.config import settings
 from app.graph import build_routing_graph
 from app.models.tables import UserTable
 from app.nodes.order import OrderStatusNode
@@ -14,6 +15,7 @@ from app.services.audit_service import list_user_audits, record_audit
 from app.services.auth_service import get_current_user
 from app.services.repository_factory import build_repositories
 from app.services.policy_service import AftersalesPolicyService
+from app.services.session_context_service import SessionContextService
 from app.tools import EvaluateAftersalesPolicyTool, GetOrderStatusTool, SearchProductsTool
 
 
@@ -28,6 +30,14 @@ async def run_chat(
 ) -> ChatPreviewResponse:
     request_id = f"req_{uuid4().hex}"
     repositories = build_repositories(db)
+    context_service = SessionContextService(
+        repositories.sessions, ttl_minutes=settings.SESSION_CONTEXT_TTL_MINUTES
+    )
+    context_key = {
+        "shop_id": current_user.shop_id,
+        "user_id": current_user.id,
+        "session_id": payload.session_id,
+    }
     catalog_agent = CatalogAgent(SearchProductsTool(repositories.catalog))
     order_tool = GetOrderStatusTool(repositories.orders, repositories.shipments)
     order_node = OrderStatusNode(order_tool)
@@ -51,6 +61,7 @@ async def run_chat(
             "message": payload.message,
             "tool_trace": [],
             "errors": [],
+            **context_service.load(**context_key),
         }
     )
     response = ChatPreviewResponse(
@@ -74,6 +85,7 @@ async def run_chat(
         tool_trace=result.get("tool_trace", []),
         errors=result.get("errors", []),
     )
+    context_service.remember(**context_key, result=result)
     record_audit(
         db,
         shop_id=current_user.shop_id,

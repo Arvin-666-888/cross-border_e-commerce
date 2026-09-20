@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 from app.adapters.sqlite import SQLiteCatalogRepository, SQLiteOrderRepository, SQLiteShipmentRepository
 from app.config import settings
 from app.ports import CatalogRepository, OrderRepository, ShipmentRepository
+from app.adapters.sqlite.session_context import SQLiteSessionContextRepository
+from app.ports.session_context import SessionContextRepository
 
 
 @dataclass(slots=True)
@@ -12,6 +14,7 @@ class Repositories:
     catalog: CatalogRepository
     orders: OrderRepository
     shipments: ShipmentRepository
+    sessions: SessionContextRepository
 
 
 def build_repositories(db: Session) -> Repositories:
@@ -21,4 +24,5 @@ def build_repositories(db: Session) -> Repositories:
         catalog=SQLiteCatalogRepository(db),
         orders=SQLiteOrderRepository(db),
         shipments=SQLiteShipmentRepository(db),
+        sessions=SQLiteSessionContextRepository(db),
     )

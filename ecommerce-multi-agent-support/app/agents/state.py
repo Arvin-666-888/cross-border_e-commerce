@@ -12,6 +12,11 @@ class GraphState(TypedDict, total=False):
     market: str
     timezone: str
     message: str
+    active_order_no: str | None
+    pending_intent: str | None
+    context_expired: bool
+    resolved_order_no: str | None
+    order_context_error: str | None
 
     route: RouteName
     route_confidence: float

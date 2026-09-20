@@ -60,6 +60,8 @@ class SupervisorRouter:
         if not normalized:
             return RouteDecision(route="unsupported", confidence=1.0, reason="The message is empty.", source="rule_fallback")
         local_decision = self._route_with_rules(normalized)
+        if re.fullmatch(r"(?:那)?(?:它|这个订单|这个包裹)?什么时候到[？?。\s]*", normalized):
+            return local_decision
         # MIGRATION: address PII and explicit cancellation requests never leave the local boundary.
         if self._is_address_change(normalized) or self._is_explicit_cancel(normalized):
             return local_decision
@@ -113,7 +115,7 @@ class SupervisorRouter:
             "lost", "delayed", "complaint", "compensation", "warranty",
         )
         logistics_keywords = (
-            "物流", "快递", "运单", "包裹", "发货", "到哪", "送到", "送达", "签收", "几号到", "何时到",
+            "物流", "快递", "运单", "包裹", "发货", "到哪", "送到", "送达", "签收", "几号到", "何时到", "什么时候到",
             "shipment", "shipping", "tracking", "track order", "track my order", "track this order",
             "package", "delivery", "carrier", "arrive", "arrival", "delivered",
         )

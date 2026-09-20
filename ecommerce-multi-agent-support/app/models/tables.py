@@ -89,6 +89,18 @@ class ShipmentTable(Base):
     order: Mapped[OrderTable] = relationship(back_populates="shipment")
 
 
+class SessionContextTable(Base):
+    __tablename__ = "session_contexts"
+
+    shop_id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
+    session_id: Mapped[str] = mapped_column(String(100), primary_key=True)
+    active_order_no: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    pending_intent: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
 class AuditLogTable(Base):
     __tablename__ = "audit_logs"
 

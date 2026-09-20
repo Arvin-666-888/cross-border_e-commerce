@@ -1,18 +1,34 @@
 from app.agents.aftersales import AftersalesAgent
 from app.agents.catalog import CatalogAgent
+from app.agents.contracts import RouteDecision
 from app.agents.state import GraphState
 from app.agents.supervisor import SupervisorRouter
-from app.nodes.order import OrderStatusNode
+from app.nodes.order import ORDER_NO_PATTERN, OrderStatusNode
+from app.services.session_context_service import ORDER_ROUTES, VAGUE_REFERENCE, resolve_order_context
 
 
 def build_supervisor_node(router: SupervisorRouter):
     async def supervisor_node(state: GraphState) -> dict:
-        decision = await router.decide(state["message"])
+        message = state["message"].strip()
+        if ORDER_NO_PATTERN.fullmatch(message):
+            pending = state.get("pending_intent")
+            decision = RouteDecision(
+                route=pending if pending in ORDER_ROUTES else "order_query",
+                confidence=1.0, reason="Explicit order number for a read-only query.", source="rule_fallback",
+            )
+        elif VAGUE_REFERENCE.fullmatch(message):
+            decision = RouteDecision(
+                route="order_query", confidence=1.0,
+                reason="Ambiguous reference requires clarification.", source="rule_fallback",
+            )
+        else:
+            decision = await router.decide(message)
         return {
             "route": decision.route,
             "route_confidence": decision.confidence,
             "route_reason": decision.reason,
             "route_source": decision.source,
+            **resolve_order_context(state, decision.route),
         }
     return supervisor_node
 
@@ -47,6 +63,8 @@ def build_order_node(node: OrderStatusNode, *, dispatched_to: str):
             timezone=state["timezone"],
             request_id=state["request_id"],
             dispatched_to=dispatched_to,
+            context_order_no=state.get("resolved_order_no"),
+            context_error=state.get("order_context_error"),
         )
     return order_node
 

@@ -26,8 +26,19 @@ class OrderStatusNode:
         timezone: str,
         request_id: str,
         dispatched_to: str = "order_query",
+        context_order_no: str | None = None,
+        context_error: str | None = None,
     ) -> dict:
-        order_no = extract_order_no(message)
+        numbers = list(dict.fromkeys(ORDER_NO_PATTERN.findall(message.upper())))
+        if len(numbers) > 1:
+            context_error = "消息中有多个订单，请确认本次要查询的一个订单号。"
+        order_no = extract_order_no(message) or context_order_no
+        if context_error:
+            return {
+                "dispatched_to": dispatched_to, "order_id": None,
+                "order_facts": None, "shipment_facts": None,
+                "answer": context_error, "tool_trace": [],
+            }
         if order_no is None:
             return {
                 "dispatched_to": dispatched_to,
