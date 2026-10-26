@@ -1,6 +1,10 @@
-# VoltCore 跨境电商多 Agent 智能客服系统
+# 跨境电商订单、物流与售后流程原型
 
-基于 LangGraph `StateGraph` 的可运行、可评测、可审计客服 V1。外部路由契约固定为：
+这是一个基于 LangGraph `StateGraph` 的本地模拟业务系统。用运营岗位的语言，它演示了：客户问商品时如何查资料，客户问订单/物流时如何核对范围，客户提出退款、取消或改地址时如何先转人工审核。
+
+**适合关注的运营场景：**订单状态查询、物流追踪、售后分流、商品信息回复、敏感操作审核。所有用户、商品、订单和物流数据均为本地模拟数据，不代表真实平台客服或店铺后台经验。
+
+外部路由契约固定为：
 
 `product_inquiry / aftersales_handling / order_query / logistics_tracking / unsupported`
 
